@@ -1,52 +1,135 @@
-from typing import NewType
+from typing import Union
 
 class Graph:
     def __init__(self, file: str) -> None:
+        self.__vertices: "list['Vertex']" = []
+        self.__edges: "list['Edge']" = []
         self.__load_file(file)
 
-    def __load_file(self, file: str):
-        # open file
-        a = len(file)
+        print("Grafo inicializado com sucesso\n\nVERTICES\n")
+        for ele in self.__vertices:
+            print(f'n{ele.get_idx()}: {ele.get_label()}')
+        print("\nARESTAS\n")
+        for ele in self.__edges:
+            print(f'{ele.get_origin()} -> {ele.get_destiny()}: peso {ele.get_weight()}')
 
-        # read vertices
-        for i in range (a):
-            self.__vertices = []
+    def __load_file(self, file: str) -> None:
+        data = open(file, 'r')
+        lines = data.readlines()
 
-        # read edges
-        for i in range (a):
-            self.__edges = []
+        for line in lines:
+            sp_line = line.split()
+            if len(sp_line) == 2 and sp_line[0] != "*vertices":
+                self.__vertices.append(Vertex(int(sp_line[0]), sp_line[1]))
+            elif len(sp_line) == 3:
+                self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
+    
+    def find_vertex(self, arg: Union[str, int]) -> 'Vertex':
+        """Retorna o Vertex especificado por rotulo ou indice."""
+        return self.__vertex_by_idx(arg) if isinstance(arg, int) else self.__vertex_by_label(arg)
+
+    def __vertex_by_idx(self, idx: int) -> 'Vertex':
+        """Retorna o Vertex especificado por indice."""
+        return self.__vertices[idx-1]
+
+    def __vertex_by_label(self, label: str) -> 'Vertex':
+        """Retorna o Vertex especificado por rotulo."""
+        return [ele for ele in self.__vertices if ele.get_label() == label][0]
+
+    def vertex_index(self, label: str) -> int:
+        """Retorna o indice do vertice especificado por rotulo"""
+        return self.__vertex_by_label(label).get_idx()
+
+    def vertex_label(self, idx: int) -> str:
+        """Retorna o rotulo do vertice especificado por indice"""
+        return self.__vertex_by_idx(idx).get_label()
+
+    def n_vertices(self) -> int:
+        """Retorna o numero de vertices do grafo."""
+        return len(self.__vertices)
+
+    def n_edges(self) -> int:
+        """Retorna o numero de arestas que o grafo possui."""
+        return len(self.__edges)
+
+    def vertex_ngbrs(self, arg: Union[str, int]) -> "list[int]":
+        """Retorna uma lista dos indices de vertices vizinhos ao vertice especificado."""
+        if isinstance(arg, str):
+            arg = self.vertex_index(arg)
+        ngbrs = [ele.get_origin() for ele in self.__edges if ele.get_destiny() == arg] # arestas ngbr -> arg
+        ngbrs.append([ele.destiny() for ele in self.__edges if ele.get_origin() == arg]) # arestas arg -> ngbr
+        ngbrs = list(dict.fromkeys(ngbrs)) # Remoção de duplicatas
+        return ngbrs
+
+    def vertex_ngbrs_label(self, arg: Union[str, int]) -> "list[int]":
+        """Retorna uma lista dos rotulos de vertices vizinhos ao vertice especificado."""
+        ngbrs = self.vertex_ngbrs(arg)
+        ngbrs = [self.__vertex_by_idx(ele).get_label() for ele in ngbrs]
+
+    def vertex_degree(self, arg: Union[str, int]) -> int:
+        """Retorna o grau do vertice especificado por rotulo ou indice."""
+        return len(self.vertex_ngbrs(arg)) if isinstance(arg, int) else len(self.vertex_ngbrs(self.vertex_index(arg)))
+
+    def add_edge(self, vertex_a: Union[str, int], vertex_b: Union[str, int], weight: float):
+        """Adiciona uma aresta entre os dois verticies especificados por rotulo ou indice com o peso indicado"""
+        self.__edges.append(Edge(self.find_vertex(vertex_a).get_idx(), self.find_vertex(vertex_b).get_idx(), weight))
+    
+    def has_edge(self, vertex_a: Union[str, int], vertex_b: Union[str, int]) -> bool:
+        """Retorna verdadeiro caso haja uma aresta entre os dois vertices especificados por rotulo ou indice"""
+        if isinstance(vertex_a, str):
+            vertex_a = self.vertex_index(vertex_a)
+        if isinstance(vertex_b, str):
+            vertex_b = self.vertex_index(vertex_b)
+
+        return self.vertex_ngbrs(vertex_a).count(vertex_b) > 0
+
+    def edge_weight(self, vertex_a: Union[str, int], vertex_b: Union[str, int]) -> Union[int, float]:
+        """Retorna o peso de uma aresta entre a e b, preferencialmente de a -> b. Em caso de não existencia retorna uma representação de float('int')"""
+        if isinstance(vertex_a, str):
+            vertex_a = self.vertex_index(vertex_a)
+        if isinstance(vertex_b, str):
+            vertex_b = self.vertex_index(vertex_b)
+
+        if self.has_edge(vertex_a, vertex_b):
+            edges = [ele for ele in self.__edges if ele.get_origin() == vertex_a]
+            if any(edges):
+                return edges[0].get_weight()
+            else:
+                edges = [ele for ele in self.__edges if ele.get_origin() == vertex_b]
+                if any(edges):
+                    return edges[0].get_weight()
+
+        return float('inf')
+
 
 class Vertex:
     def __init__(self, idx: int, label: str) -> None:
         self.__idx = idx
         self.__label = label
-        self.__edges = []
 
     def get_idx(self) -> int:
+        """Retorna o indice do vertice"""
         return self.__idx
 
     def get_label(self) -> str:
+        """Retorna o rotulo do vertice"""
         return self.__label
 
-    def get_ngbrs(self) -> list['Edge']:
-        return self.__edges
-
-    def get_ngbrs_label(self) -> list[int]:
-        return [element.get_vertex().get_label() for element in self.__edges]
-
-    def get_ngbrs_idx(self) -> list[str]:
-        return [element.get_vertex().get_idx() for element in self.__edges]
-
-    def add_edge(self, edge: 'Edge') -> None:
-        self.__edges.append(edge)
-
 class Edge:
-    def __init__(self, vertex: 'Vertex', weight: int) -> None:
-        self.__vertex = vertex
+    def __init__(self, vertex_a: int, vertex_b: int, weight: float) -> None:
+        """Cria uma aresta indo de vertex_a para vertex_b com peso weight"""
+        self.__vertex_a = vertex_a
+        self.__vertex_b = vertex_b
         self.__weight = weight
 
-    def get_vertex(self) -> 'Vertex':
-        return self.__vertex
+    def get_origin(self) -> 'Vertex':
+        """Retorna o indice do vertice de origem."""
+        return self.__vertex_a
 
-    def get_weight(self) -> int:
+    def get_destiny(self) -> 'Vertex':
+        """Retorna o indice do vertice de destino."""
+        return self.__vertex_b
+
+    def get_weight(self) -> float:
+        """Retorna o peso da aresta."""
         return self.__weight
