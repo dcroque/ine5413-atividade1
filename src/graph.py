@@ -101,6 +101,20 @@ class Graph:
 
         return float('inf')
 
+    def breadth_first_search(self, s: Union[str, int]):
+        pass
+
+    def euler_cycle(self) -> None:
+        pass
+
+    def bellman_ford(self, s: Union[str, int]) -> None:
+        pass
+
+    def dijkstra(self, s: Union[str, int]) -> None:
+        pass
+
+    def floyd_Warshall(self) -> None:
+        pass
 
 class Vertex:
     def __init__(self, idx: int, label: str) -> None:
