@@ -6,12 +6,13 @@ class Graph:
         self.__edges: "list['Edge']" = []
         self.__load_file(file)
 
-        print("Grafo inicializado com sucesso\n\nVERTICES\n")
+        print("\nGrafo inicializado com sucesso\n\nVERTICES\n")
         for ele in self.__vertices:
             print(f'n{ele.get_idx()}: {ele.get_label()}')
         print("\nARESTAS\n")
         for ele in self.__edges:
             print(f'{ele.get_origin()} -> {ele.get_destiny()}: peso {ele.get_weight()}')
+        print()
 
     def __load_file(self, file: str) -> None:
         data = open(file, 'r')
