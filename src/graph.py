@@ -113,7 +113,6 @@ class Graph:
             print("Error finding the root vertex.")
             return
 
-
         it = 0
         ngbrs = [s]
         all_until_now = [s]

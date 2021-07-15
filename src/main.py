@@ -3,11 +3,11 @@ import cli
 
 # test_data
 #
-# 2   5   8
-#  \  |
-#   1-4---7
-#  /   \ /
-# 3     6   
+# 2   5---8
+# |\  |
+# | 1-4---7
+# |    \ /
+# 3-----6   
 
 graph = gr.Graph(cli.args.file)
 action_done = False
