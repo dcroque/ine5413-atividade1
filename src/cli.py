@@ -10,7 +10,13 @@ def fix_type(arg: str) -> Union[str, int]:
 parser = argparse.ArgumentParser(description='Read graph from file and apply some actions to them')
 parser.add_argument('-file',
                     type=str,
+                    required=True,
                     help='Path for graph file')
+
+parser.add_argument('-i',
+                    '--info',
+                    action='store_true',
+                    help='Output info about vertex and edges from the given file')
 
 parser.add_argument('-s',
                     '--bfs',
