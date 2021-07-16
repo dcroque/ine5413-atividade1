@@ -1,14 +1,6 @@
 import graph as gr
 import cli
 
-# test_data
-#
-# 2   5---8
-# |\  |
-# | 1-4---7
-# |    \ /
-# 3-----6   
-
 graph = gr.Graph(cli.args.file)
 action_done = False
 
@@ -24,7 +16,7 @@ if cli.args.bfs is not None:
 
 if cli.args.euler_cycle:
     print(f"Euler cycle:\n")
-    graph.euler_cycle(cli.args.euler_cycle)
+    graph.euler_cycle()
     action_done = True
 
 if cli.args.bellman_ford is not None:

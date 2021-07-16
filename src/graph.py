@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 
 class Graph:
     def __init__(self, file: str) -> None:
@@ -12,7 +12,9 @@ class Graph:
 
         for line in lines:
             sp_line = line.split()
-            if len(sp_line) == 2 and sp_line[0] != "*vertices":
+            if sp_line[0][0] == "#":
+                pass
+            elif len(sp_line) == 2 and sp_line[0] != "*vertices":
                 self.__vertices.append(Vertex(int(sp_line[0]), sp_line[1]))
             elif len(sp_line) == 3:
                 self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
@@ -106,7 +108,7 @@ class Graph:
         return float('inf')
 
     def breadth_first_search(self, s: Union[str, int]) -> None:
-        """Realiza uma busca em largura no grafo a partir do vertice s e imprime os resultados em tela"""
+        """Realiza uma busca em largura no grafo a partir do vertice s e imprime os resultados"""
         if isinstance(s, str):
             s = self.vertex_index(s)
         if s == -1 or s < 0 or s > len(self.__vertices):
@@ -136,9 +138,101 @@ class Graph:
             it += 1
             if len(ngbrs) == 0:
                 break
+        print()
 
     def euler_cycle(self) -> None:
-        pass
+        """Procura pelo ciclo de euler do grafo pelo algoritmo de Hierholzer e imprime os resultados"""
+        if not self.__has_euler_cycle():
+            print("0")
+            return
+        else:
+            c = [False]*len(self.__edges)
+            found, cycle, c = self.__search_subcycle_euler(1, c)
+
+            if not found:
+                print("0")
+                return
+            else:
+                if c.count(False) > 0:
+                    print("0")
+                    return
+                else:
+                    print("1")
+                    print(f"{cycle[0]}", end="")
+                    for i in range(1,len(cycle)):
+                        print(f",{cycle[i]}", end="")
+                    print()
+                    return
+
+    def __has_euler_cycle(self) -> bool:
+        """Retorna verdadeiro se o grafo possuir um ciclo Euleriano"""
+        for ele in self.__vertices:
+            n_ngbrs = len(self.vertex_ngbrs(ele.get_idx()))
+            if n_ngbrs == 0:
+                return False
+            elif n_ngbrs % 2:
+                return False
+        return True
+
+    def __edge_pos(self, vertex_a: Union[str, int], vertex_b: Union[str, int]) -> int:
+        """Retorna qual o índice do vetor de arestas possui um elemento que conecta vertex_a e vertex_b"""
+        if isinstance(vertex_a, str):
+            vertex_a = self.vertex_index(vertex_a)
+        if isinstance(vertex_b, str):
+            vertex_b = self.vertex_index(vertex_b)
+
+        if not self.has_edge(vertex_a, vertex_b):
+            return -1
+        else:
+            for i in range(len(self.__edges)):
+                ori = self.__edges[i].get_origin()
+                des = self.__edges[i].get_destiny()
+                if  (des == vertex_a and ori == vertex_b) or (des == vertex_b and ori == vertex_a):
+                    return i
+
+    def __all_edges_pos(self, vertex_a: Union[str, int]) -> "list[int]":
+        """Retorna uma lista com o índice de todas as arestas do vertex_a"""
+        if isinstance(vertex_a, str):
+            vertex_a = self.vertex_index(vertex_a)
+
+        vec = []
+        for ele in self.__vertices:
+            if ele.get_idx() != vertex_a and self.has_edge(vertex_a, ele.get_idx()):
+                vec.append(self.__edge_pos(vertex_a, ele.get_idx()))
+        return vec
+
+    def __search_subcycle_euler(self, v: int, c: "list[bool]") -> Tuple[bool, "list[int]", "list[bool]"]:
+        """Procura po um subciclo de euler dentro do grafo"""
+        cycle = [v]
+        t = 0
+        first = True
+        while v != t:
+            if first:
+                first = False
+                t = v
+            v_edges = self.__all_edges_pos(v)
+            non_visited = [ele for ele in v_edges if not c[ele]]
+            if len(non_visited) == 0:
+                return False, [], []
+            else:
+                edge = self.__edges[non_visited[0]]
+                c[non_visited[0]] = True
+                v = edge.get_destiny() if edge.get_destiny() != v else edge.get_origin()
+                cycle.append(v)
+
+        for x in range(len(cycle)):
+            x_edges = self.__all_edges_pos(cycle[x])
+            non_visited = [ele for ele in x_edges if not c[ele]]
+            if len(non_visited) > 0:
+                found, subcycle, c = self.__search_subcycle_euler(cycle[x], c)
+                if not found:
+                    return False, [], c
+                
+                for i in range(len(subcycle)-1, -1, -1):
+                    cycle.insert(x+1, subcycle[i])
+                cycle.pop(x)
+
+        return True, cycle, c
 
     def bellman_ford(self, s: Union[str, int]) -> None:
         pass
