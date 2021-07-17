@@ -1,6 +1,7 @@
 import graph as gr
 import cli
 
+print()
 graph = gr.Graph(cli.args.file)
 action_done = False
 

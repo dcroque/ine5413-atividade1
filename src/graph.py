@@ -1,3 +1,4 @@
+from os import error
 from typing import Union, Tuple
 
 class Graph:
@@ -7,17 +8,22 @@ class Graph:
         self.__load_file(file)
 
     def __load_file(self, file: str) -> None:
-        data = open(file, 'r')
-        lines = data.readlines()
+        """Busca dados e insere os dados de um arquivo no grafo."""
+        try:
+            data = open(file, 'r')
+            lines = data.readlines()
 
-        for line in lines:
-            sp_line = line.split()
-            if sp_line[0][0] == "#":
-                pass
-            elif len(sp_line) == 2 and sp_line[0] != "*vertices":
-                self.__vertices.append(Vertex(int(sp_line[0]), sp_line[1]))
-            elif len(sp_line) == 3:
-                self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
+            for line in lines:
+                sp_line = line.split()
+                if sp_line[0][0] == "#":
+                    pass
+                elif len(sp_line) == 2 and sp_line[0] != "*vertices":
+                    self.__vertices.append(Vertex(int(sp_line[0]), sp_line[1]))
+                elif len(sp_line) == 3:
+                    self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
+        except Exception as err:
+            print(f"{err}\nSomething went wrong while loading the requested file.\nPlease, check the README file for more information about the input files")
+            exit()
 
     def print_graph_info(self):
         for ele in self.__vertices:
@@ -112,7 +118,7 @@ class Graph:
         if isinstance(s, str):
             s = self.vertex_index(s)
         if s == -1 or s < 0 or s > len(self.__vertices):
-            print("Error finding the root vertex.")
+            print("Error finding the root vertex.\n")
             return
 
         it = 0
@@ -202,7 +208,7 @@ class Graph:
         return vec
 
     def __search_subcycle_euler(self, v: int, c: "list[bool]") -> Tuple[bool, "list[int]", "list[bool]"]:
-        """Procura po um subciclo de euler dentro do grafo"""
+        """Procura por um subciclo de Euler dentro do grafo"""
         cycle = [v]
         t = 0
         first = True
