@@ -246,8 +246,43 @@ class Graph:
     def dijkstra(self, s: Union[str, int]) -> None:
         pass
 
+    def adjacency_matrix(self) -> "list[int][int]":
+        matrix = [[],[]]
+
+        for indexA in range(self.n_vertices()):
+            for indexB in range(self.n_vertices()):
+                if indexA == indexB:
+                    matrix[indexA][indexB] = 0
+                elif self.has_edge(indexA, indexB):
+                    matrix[indexA][indexB] = self.edge_weight(indexA, indexB)
+                else:
+                    matrix[indexA][indexB] = float('inf')
+
+        return matrix
+
     def floyd_Warshall(self) -> None:
-        pass
+        
+        graph = self.adjacency_matrix()
+
+        for k in range(self.n_vertices()):
+            for i in range(self.n_vertices()):
+                for j in range(self.n_vertices()):
+                    graph[i][j] = min(graph[i][j], graph[i][k] + graph[k][j])
+
+        representation = ''
+        for indexA in range(self.n_vertices()):
+            if indexA == 0:
+                representation += indexA, ':' 
+            else:
+                representation += '\n', indexA, ':' 
+
+            for indexB in range(self.n_vertices()):
+                if indexB != self.n_vertices:
+                    representation += indexB, ','
+                else: 
+                    representation += indexB
+        
+        print(representation)
 
 class Vertex:
     def __init__(self, idx: int, label: str) -> None:
