@@ -43,8 +43,7 @@ parser.add_argument('-d',
 
 parser.add_argument('-fw',
                     '--floyd_warshall',
-                    type= str,
-                    action='store',
+                    action='store_true',
                     help='Output the result of a Floyd-Warshall algorithm based on the label or index provided')              
 
 args = parser.parse_args()

@@ -30,9 +30,9 @@ if cli.args.dijkstra is not None:
     graph.dijkstra(cli.args.dijkstra)
     action_done = True
 
-if cli.args.floyd_warshall is not None:
-    print(f"Floyd-Warshall algorithm in vertex {cli.args.floyd_warshall}:\n")
-    graph.floyd_Warshall(cli.args.floyd_warshall)
+if cli.args.floyd_warshall:
+    print(f"Floyd-Warshall algorithm:\n")
+    graph.floyd_warshall()
     action_done = True
 
 if not action_done:

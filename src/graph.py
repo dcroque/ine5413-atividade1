@@ -1,4 +1,4 @@
-from os import error
+from os import error, getrandom
 from typing import Union, Tuple
 
 class Graph:
@@ -103,13 +103,9 @@ class Graph:
             vertex_b = self.vertex_index(vertex_b)
 
         if self.has_edge(vertex_a, vertex_b):
-            edges = [ele for ele in self.__edges if ele.get_origin() == vertex_a]
-            if any(edges):
-                return edges[0].get_weight()
-            else:
-                edges = [ele for ele in self.__edges if ele.get_origin() == vertex_b]
-                if any(edges):
-                    return edges[0].get_weight()
+            for element in self.__edges: 
+                if element.get_origin() == vertex_a and element.get_destiny() == vertex_b:
+                    return element.get_weight()
 
         return float('inf')
 
@@ -247,20 +243,21 @@ class Graph:
         pass
 
     def adjacency_matrix(self) -> "list[int][int]":
-        matrix = [[],[]]
+        matrix = [None]*self.n_vertices()
+
+        for i in range (len(matrix)):
+            matrix[i] = [None]*self.n_vertices()
 
         for indexA in range(self.n_vertices()):
             for indexB in range(self.n_vertices()):
                 if indexA == indexB:
                     matrix[indexA][indexB] = 0
-                elif self.has_edge(indexA, indexB):
-                    matrix[indexA][indexB] = self.edge_weight(indexA, indexB)
                 else:
-                    matrix[indexA][indexB] = float('inf')
-
+                    matrix[indexA][indexB] = self.edge_weight(indexA + 1, indexB + 1)
+                
         return matrix
 
-    def floyd_Warshall(self) -> None:
+    def floyd_warshall(self) -> None:
         
         graph = self.adjacency_matrix()
 
@@ -271,16 +268,11 @@ class Graph:
 
         representation = ''
         for indexA in range(self.n_vertices()):
-            if indexA == 0:
-                representation += indexA, ':' 
-            else:
-                representation += '\n', indexA, ':' 
-
             for indexB in range(self.n_vertices()):
-                if indexB != self.n_vertices:
-                    representation += indexB, ','
-                else: 
-                    representation += indexB
+                if indexB == 0:
+                    representation += '\n' + str(indexA + 1) + ': ' + ("%.0f" % graph[indexA][indexB])
+                else:
+                    representation += ',' + ("%.0f" % graph[indexA][indexB])
         
         print(representation)
 
