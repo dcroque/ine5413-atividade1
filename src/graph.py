@@ -1,5 +1,6 @@
-from os import error
+from os import error, getrandom, truncate
 from typing import Union, Tuple
+import heapq
 
 class Graph:
     def __init__(self, file: str) -> None:
@@ -103,13 +104,11 @@ class Graph:
             vertex_b = self.vertex_index(vertex_b)
 
         if self.has_edge(vertex_a, vertex_b):
-            edges = [ele for ele in self.__edges if ele.get_origin() == vertex_a]
-            if any(edges):
-                return edges[0].get_weight()
-            else:
-                edges = [ele for ele in self.__edges if ele.get_origin() == vertex_b]
-                if any(edges):
-                    return edges[0].get_weight()
+            for element in self.__edges: 
+                if element.get_origin() == vertex_a and element.get_destiny() == vertex_b:
+                    return element.get_weight()
+                elif element.get_origin() == vertex_b and element.get_destiny() == vertex_a:
+                    return element.get_weight()
 
         return float('inf')
 
@@ -244,10 +243,107 @@ class Graph:
         pass
 
     def dijkstra(self, s: Union[str, int]) -> None:
-        pass
+        distancia = []
+        if isinstance(s, str):
+            vertex_indice = self.vertex_index(s)
+        else: 
+            vertex_indice = s
 
-    def floyd_Warshall(self) -> None:
-        pass
+        for i in range(1, self.n_vertices() + 1):
+            if i == vertex_indice:
+                distancia.append([0.0, i, None, False])
+            else:
+                distancia.append([float('inf'), i, None, False])
+
+        visitados = []
+        vertex_selecionado = []
+        while len(visitados) != self.n_vertices():
+            
+            vertex_selecionado = distancia[0]
+
+            for element in distancia:
+                if vertex_selecionado[3] == True:
+                    vertex_selecionado = element
+                elif element[3] == False and vertex_selecionado[0] > element[0]:
+                    vertex_selecionado = element
+
+            visitados.append(element)
+            vertex_selecionado[3] = True
+            
+            for vertex_ngbrs in distancia:
+                if vertex_ngbrs[1] in self.vertex_ngbrs(vertex_selecionado[1]) and vertex_ngbrs[3] == False:
+                    if vertex_ngbrs[0] > vertex_selecionado[0] + self.edge_weight(vertex_ngbrs[1], vertex_selecionado[1]):
+                        vertex_ngbrs[0] = vertex_selecionado[0] + self.edge_weight(vertex_ngbrs[1], vertex_selecionado[1])
+                        vertex_ngbrs[2] = vertex_selecionado[1]
+                    
+        '''
+        1: 2,3,4,1; d=7
+        2: 2; d=0
+        3: 2,3; d=4
+        4: 2,3,4; d=6
+        5: 2,3,5; d=8
+        '''
+
+        representation = ''
+        for element in distancia:
+            if element[2] == None:
+                representation += '\n' + str(element[1]) + ': ' + str(element[1]) + '; d=' + ("%.0f" % element[0])
+            else:
+                representation += '\n' + str(element[1]) + ': '
+                arrAux = [element[1]]
+                anterior = element[2]
+                index = 0
+                while True:
+                    index = index % len(distancia)
+
+                    if distancia[index][1] == anterior:
+                        arrAux.insert(0, anterior)
+                        anterior = distancia[index][2]
+                    if anterior == None:
+                        break
+                    
+                    index += 1
+                
+                representation += ','.join([str(_) for _ in arrAux]) + '; d=' + ("%.0f" % element[0])
+
+
+        print(representation)
+
+
+
+    def adjacency_matrix(self) -> "list[int][int]":
+        matrix = [None]*self.n_vertices()
+
+        for i in range (len(matrix)):
+            matrix[i] = [None]*self.n_vertices()
+
+        for indexA in range(self.n_vertices()):
+            for indexB in range(self.n_vertices()):
+                if indexA == indexB:
+                    matrix[indexA][indexB] = 0
+                else:
+                    matrix[indexA][indexB] = self.edge_weight(indexA + 1, indexB + 1)
+                
+        return matrix
+
+    def floyd_warshall(self) -> None:
+        
+        graph = self.adjacency_matrix()
+
+        for k in range(self.n_vertices()):
+            for i in range(self.n_vertices()):
+                for j in range(self.n_vertices()):
+                    graph[i][j] = min(graph[i][j], graph[i][k] + graph[k][j])
+
+        representation = ''
+        for indexA in range(self.n_vertices()):
+            for indexB in range(self.n_vertices()):
+                if indexB == 0:
+                    representation += '\n' + str(indexA + 1) + ': ' + ("%.0f" % graph[indexA][indexB])
+                else:
+                    representation += ',' + ("%.0f" % graph[indexA][indexB])
+        
+        print(representation)
 
 class Vertex:
     def __init__(self, idx: int, label: str) -> None:
