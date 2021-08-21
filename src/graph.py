@@ -9,7 +9,6 @@ class Graph:
         self.__load_file(file)
         self.__directed = False
 
-
     def __load_file(self, file: str) -> None:
         """Busca dados e insere os dados de um arquivo no grafo."""
         try:
@@ -33,11 +32,11 @@ class Graph:
                         if len(sp_types) > 2:
                             w = float(sp_line[2])
                         if sp_types[0] == "int":
-                            self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
+                            self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), w))
                         else:
                             vertex1 = self.vertex_index(sp_line[0])
                             vertex2 = self.vertex_index(sp_line[1])
-                            self.__edges.append(Edge(vertex1, vertex2, float(sp_line[2])))
+                            self.__edges.append(Edge(vertex1, vertex2, w))
         except Exception as err:
             print(f"{err}\nSomething went wrong while loading the requested file.\nPlease, check the README file for more information about the input files")
             exit()
@@ -102,6 +101,14 @@ class Graph:
         ngbrs = self.vertex_ngbrs(arg)
         ngbrs = [self.__vertex_by_idx(ele).get_label() for ele in ngbrs]
 
+    def vertex_destinies(self, arg: Union[str, int]) -> "list[int]":
+        """Retorna uma lista dos indices de vertices vizinhos ao vertice especificado."""
+        if isinstance(arg, str):
+            arg = self.vertex_index(arg)
+        ngbrs = [ele.get_destiny() for ele in self.__edges if ele.get_origin() == arg] # arestas arg -> ngbr
+        ngbrs = list(dict.fromkeys(ngbrs)) # Remoção de duplicatas
+        return ngbrs
+
     def vertex_degree(self, arg: Union[str, int]) -> int:
         """Retorna o grau do vertice especificado por rotulo ou indice."""
         return len(self.vertex_ngbrs(arg)) if isinstance(arg, int) else len(self.vertex_ngbrs(self.vertex_index(arg)))
@@ -119,6 +126,15 @@ class Graph:
 
         return self.vertex_ngbrs(vertex_a).count(vertex_b) > 0
 
+    def has_edge_dir(self, origin: Union[str, int], dest: Union[str, int]) -> bool:
+        """Retorna verdadeiro caso haja uma aresta entre os dois vertices especificados por rotulo ou indice"""
+        if isinstance(origin, str):
+            origin = self.vertex_index(origin)
+        if isinstance(dest, str):
+            dest = self.vertex_index(dest)
+
+        return self.vertex_ngbrs(origin).count(dest) > 0
+
     def edge_weight(self, vertex_a: Union[str, int], vertex_b: Union[str, int]) -> Union[int, float]:
         """Retorna o peso de uma aresta entre a e b, preferencialmente de a -> b. Em caso de não existencia retorna uma representação de float('int')"""
         if isinstance(vertex_a, str):
@@ -134,6 +150,8 @@ class Graph:
                     return element.get_weight()
 
         return float('inf')
+
+# Atividade 1
 
     def breadth_first_search(self, s: Union[str, int]) -> None:
         """Realiza uma busca em largura no grafo a partir do vertice s e imprime os resultados"""
@@ -332,8 +350,6 @@ class Graph:
 
         print(representation)
 
-
-
     def adjacency_matrix(self) -> "list[int][int]":
         matrix = [None]*self.n_vertices()
 
@@ -367,6 +383,20 @@ class Graph:
                     representation += ',' + ("%.0f" % graph[indexA][indexB])
         
         print(representation)
+
+# Atividade 2
+
+    def strongly_connected_components(self) -> None:
+        pass
+
+    def topological_ordering(self) -> None:
+        pass
+
+    def kruskal(self) -> None:
+        pass
+
+    def prim(self) -> None:
+        pass
 
 class Vertex:
     def __init__(self, idx: int, label: str) -> None:

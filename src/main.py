@@ -30,9 +30,24 @@ if cli.args.dijkstra is not None:
     graph.dijkstra(cli.args.dijkstra)
     action_done = True
 
-if cli.args.floyd_warshall:
-    print(f"Floyd-Warshall algorithm:\n")
-    graph.floyd_warshall()
+if cli.args.strongly_connected:
+    print(f"Strongly connected components:\n")
+    graph.strongly_connected_components()
+    action_done = True
+
+if cli.args.topological_ordering:
+    print(f"Topological order:\n")
+    graph.topological_ordering()
+    action_done = True
+
+if cli.args.kruskal:
+    print(f"Kruskal's minimum spanning tree:\n")
+    graph.kruskal()
+    action_done = True
+
+if cli.args.prim:
+    print(f"Prim's minimum spanning tree:\n")
+    graph.prim()
     action_done = True
 
 if not action_done:
