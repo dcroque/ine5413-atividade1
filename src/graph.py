@@ -6,7 +6,8 @@ class Graph:
     def __init__(self, file: str) -> None:
         self.__vertices: "list['Vertex']" = []
         self.__edges: "list['Edge']" = []
-        self.__load_file(file)
+        self.__newload_file(file)
+        self.__directed = False
 
     def __load_file(self, file: str) -> None:
         """Busca dados e insere os dados de um arquivo no grafo."""
@@ -16,15 +17,60 @@ class Graph:
 
             for line in lines:
                 sp_line = line.split()
+                
                 if sp_line[0][0] == "#":
                     pass
                 elif len(sp_line) == 2 and sp_line[0] != "*vertices":
                     self.__vertices.append(Vertex(int(sp_line[0]), sp_line[1]))
                 elif len(sp_line) == 3:
-                    self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
+                    try:
+                        self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
+                    except ValueError:
+                        vertex1 = self.vertex_index(sp_line[0])
+                        vertex2 = self.vertex_index(sp_line[1])
+                        self.__edges.append(Edge(vertex1, vertex2, float(sp_line[2])))
         except Exception as err:
             print(f"{err}\nSomething went wrong while loading the requested file.\nPlease, check the README file for more information about the input files")
             exit()
+
+    def __newload_file(self, file: str) -> None:
+        """Busca dados e insere os dados de um arquivo no grafo."""
+        try:
+            data = open(file, 'r')
+            lines = data.readlines()
+
+            for line in lines:
+                sp_line = line.split()
+                sp_types = [self.__input_type(a) for a in sp_line]
+                    
+                if sp_line[0][0] == "#" or sp_line[0][0] == "*":
+                    if sp_line[0] == "*edges":
+                        self.__directed = False
+                    if sp_line[0] == "*arcs":
+                        self.__directed = True                 
+                else:
+                    if sp_types[0] != sp_types[1]:
+                        self.__vertices.append(Vertex(int(sp_line[0]), sp_line[1]))
+                    else:
+                        w = 1
+                        if len(sp_types) > 2:
+                            w = float(sp_line[2])
+                        if sp_types[0] == "int":
+                            self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
+                        else:
+                            vertex1 = self.vertex_index(sp_line[0])
+                            vertex2 = self.vertex_index(sp_line[1])
+                            self.__edges.append(Edge(vertex1, vertex2, float(sp_line[2])))
+        except Exception as err:
+            print(f"{err}\nSomething went wrong while loading the requested file.\nPlease, check the README file for more information about the input files")
+            exit()
+
+    def __input_type(self, value: Union[str, int]) -> str:
+        try:
+            a = int(value)
+            return "int"
+        except ValueError:
+            return "str"
 
     def print_graph_info(self):
         for ele in self.__vertices:
