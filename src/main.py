@@ -30,6 +30,11 @@ if cli.args.dijkstra is not None:
     graph.dijkstra(cli.args.dijkstra)
     action_done = True
 
+if cli.args.floyd_warshall:
+    print(f"Floyd-Warshall algorithm:\n")
+    graph.floyd_warshall()
+    action_done = True
+
 if cli.args.strongly_connected:
     print(f"Strongly connected components:\n")
     graph.strongly_connected_components()

@@ -6,8 +6,8 @@ class Graph:
     def __init__(self, file: str) -> None:
         self.__vertices: "list['Vertex']" = []
         self.__edges: "list['Edge']" = []
-        self.__load_file(file)
         self.__directed = False
+        self.__load_file(file)
 
     def __load_file(self, file: str) -> None:
         """Busca dados e insere os dados de um arquivo no grafo."""
@@ -16,14 +16,16 @@ class Graph:
             lines = data.readlines()
 
             for line in lines:
+                if line.replace("edges", "") != line:
+                    self.__directed = False
+                if line.replace("arcs", "") != line:
+                    self.__directed = True 
+                
                 sp_line = line.split()
                 sp_types = [self.__input_type(a) for a in sp_line]
                     
                 if sp_line[0][0] == "#" or sp_line[0][0] == "*":
-                    if sp_line[0] == "*edges":
-                        self.__directed = False
-                    if sp_line[0] == "*arcs":
-                        self.__directed = True                 
+                    pass                
                 else:
                     if sp_types[0] != sp_types[1]:
                         self.__vertices.append(Vertex(int(sp_line[0]), sp_line[1]))
@@ -124,16 +126,12 @@ class Graph:
         if isinstance(vertex_b, str):
             vertex_b = self.vertex_index(vertex_b)
 
-        return self.vertex_ngbrs(vertex_a).count(vertex_b) > 0
+        if self.__directed:
+            ngbrs = self.vertex_destinies(vertex_a)
+        else:
+            ngbrs = self.vertex_ngbrs(vertex_a)
 
-    def has_edge_dir(self, origin: Union[str, int], dest: Union[str, int]) -> bool:
-        """Retorna verdadeiro caso haja uma aresta entre os dois vertices especificados por rotulo ou indice"""
-        if isinstance(origin, str):
-            origin = self.vertex_index(origin)
-        if isinstance(dest, str):
-            dest = self.vertex_index(dest)
-
-        return self.vertex_ngbrs(origin).count(dest) > 0
+        return ngbrs.count(vertex_b) > 0
 
     def edge_weight(self, vertex_a: Union[str, int], vertex_b: Union[str, int]) -> Union[int, float]:
         """Retorna o peso de uma aresta entre a e b, preferencialmente de a -> b. Em caso de não existencia retorna uma representação de float('int')"""
@@ -146,7 +144,7 @@ class Graph:
             for element in self.__edges: 
                 if element.get_origin() == vertex_a and element.get_destiny() == vertex_b:
                     return element.get_weight()
-                elif element.get_origin() == vertex_b and element.get_destiny() == vertex_a:
+                elif element.get_origin() == vertex_b and element.get_destiny() == vertex_a and (not self.__directed):
                     return element.get_weight()
 
         return float('inf')
@@ -173,7 +171,10 @@ class Graph:
 
             next_ngbrs = []
             for ele in ngbrs:
-                temp = self.vertex_ngbrs(ele)
+                if self.__directed:
+                    temp = self.vertex_destinies(ele)
+                else:
+                    temp = self.vertex_ngbrs(ele)
                 for val in temp:
                     if all_until_now.count(val) == 0:
                         all_until_now.append(val)
@@ -350,7 +351,7 @@ class Graph:
 
         print(representation)
 
-    def adjacency_matrix(self) -> "list[int][int]":
+    def __distance_matrix(self) -> "list[int][int]":
         matrix = [None]*self.n_vertices()
 
         for i in range (len(matrix)):
@@ -362,17 +363,17 @@ class Graph:
                     matrix[indexA][indexB] = 0
                 else:
                     matrix[indexA][indexB] = self.edge_weight(indexA + 1, indexB + 1)
-                
+        
+        for k in range(self.n_vertices()):
+            for i in range(self.n_vertices()):
+                for j in range(self.n_vertices()):
+                    matrix[i][j] = min(matrix[i][j], matrix[i][k] + matrix[k][j])
+
         return matrix
 
     def floyd_warshall(self) -> None:
         
-        graph = self.adjacency_matrix()
-
-        for k in range(self.n_vertices()):
-            for i in range(self.n_vertices()):
-                for j in range(self.n_vertices()):
-                    graph[i][j] = min(graph[i][j], graph[i][k] + graph[k][j])
+        graph = self.__distance_matrix()
 
         representation = ''
         for indexA in range(self.n_vertices()):
@@ -387,7 +388,28 @@ class Graph:
 # Atividade 2
 
     def strongly_connected_components(self) -> None:
-        pass
+        distances = self.__distance_matrix()
+        vertices_done = [False]*self.n_vertices()
+        components = []
+
+        for i in range(self.n_vertices()):
+            if not vertices_done[i]:
+                new_comp = []
+                for j in range(self.n_vertices()):
+                    if distances[i][j] != float('inf') and distances[j][i] != float('inf'):
+                        new_comp.append(j+1)
+                        vertices_done[j] = True
+                components.append(new_comp)
+
+        for comp in components:
+            line = str(comp[0])
+            first = True
+            for v in comp:
+                if first:
+                    first = False
+                else:
+                    line += ", " + str(v)
+            print(line)
 
     def topological_ordering(self) -> None:
         pass
