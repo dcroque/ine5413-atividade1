@@ -388,6 +388,7 @@ class Graph:
 # Atividade 2
 
     def strongly_connected_components(self) -> None:
+        """Procura e lista todos os componentes fortemente conexos do grafo para depois imprimir os resultados"""
         distances = self.__distance_matrix()
         vertices_done = [False]*self.n_vertices()
         components = []
@@ -411,8 +412,41 @@ class Graph:
                     line += ", " + str(v)
             print(line)
 
+    def __DFS_Visit_OT(self, u: int, list_C: "list[bool]", list_T: "list[float]", list_F: "list[float]", tempo: float, list_O: "list[str]") -> Tuple["list[bool]", "list[float]", "list[float]", float, "list[str]"]:
+        list_C[u] = True
+        tempo += 1
+        list_T[u] = tempo
+
+        ngbrs = self.vertex_destinies(u+1)
+        ngbrs = [ele-1 for ele in ngbrs]
+
+        for i in ngbrs:
+            if not list_C[i]:
+                list_C, list_T, list_F, tempo, list_O = self.__DFS_Visit_OT(i, list_C, list_T, list_F, tempo, list_O)
+        
+        tempo += 1
+        list_F[u] = tempo
+        list_O.insert(0, self.vertex_label(u+1))
+
+        return list_C, list_T, list_F, tempo, list_O
+
     def topological_ordering(self) -> None:
-        pass
+        """Procura por uma ordem topológica válida para o grafo e imprime os resultados"""
+        list_C = [False]*self.n_vertices()
+        list_T = [float('inf')]*self.n_vertices()
+        list_F = [float('inf')]*self.n_vertices()
+        tempo = 0
+        list_O = []
+
+        for u in range(len(self.__vertices)):
+            if not list_C[u]:
+                list_C, list_T, list_F, tempo, list_O = self.__DFS_Visit_OT(u, list_C, list_T, list_F, tempo, list_O)
+
+        line = list_O[0]
+        for i in range(1, len(list_O)):
+            line += " -> " + list_O[i]
+
+        print(line)
 
     def kruskal(self) -> None:
         pass
