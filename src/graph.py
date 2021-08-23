@@ -448,8 +448,55 @@ class Graph:
 
         print(line)
 
+    def union(self, lst1, lst2):
+        final_list = list(set(lst1) | set(lst2))
+        return final_list
+
     def kruskal(self) -> None:
-        pass
+        result = []
+        trees = [None]*self.n_vertices()  # = S
+        vertex = 1
+        for index in range(len(trees)):
+            trees[index] = [vertex]
+            vertex += 1
+
+        tuples_vertex = []
+
+        for vertex_a in range(1, self.n_vertices() + 1):
+            for vertex_b in range(1, self.n_vertices() + 1):
+                if vertex_b in self.vertex_destinies(vertex_a):
+                    tuples_vertex.append({
+                        'first': vertex_a,
+                        'last': vertex_b,
+                        'weight': self.edge_weight(vertex_a, vertex_b),
+                    })
+        orderly_vertex = [] # = E'
+        tuples_vertex_len = len(tuples_vertex)
+        
+        while len(orderly_vertex) < tuples_vertex_len:
+            less = tuples_vertex[0]
+            for index in range(len(tuples_vertex)):
+                if tuples_vertex[index]['weight'] < less['weight']:
+                    less = tuples_vertex[index]
+            tuples_vertex.remove(less)
+            orderly_vertex.append(less)
+
+        for tuple_ in orderly_vertex:
+            if trees[tuple_['first'] - 1] != trees[tuple_['last'] - 1]: 
+                result.append(tuple_)
+                x = self.union(trees[tuple_['first'] - 1], trees[tuple_['last'] - 1])
+                for y in x:
+                    trees[y - 1] = x
+        sum = 0
+        edges = ''
+        for index in range(len(result)):
+            sum += result[index]['weight']
+            if len(edges) == 0:
+                edges = str(result[index]['first']) + '-' + str(result[index]['last'])
+            else:
+                edges += ', ' + str(result[index]['first']) + '-' + str(result[index]['last'])
+        print(sum)
+        print(edges)
 
     def prim(self) -> None:
         pass
