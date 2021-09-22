@@ -6,9 +6,8 @@ class Graph:
     def __init__(self, file: str) -> None:
         self.__vertices: "list['Vertex']" = []
         self.__edges: "list['Edge']" = []
-        self.__load_file(file)
         self.__directed = False
-
+        self.__load_file(file)
 
     def __load_file(self, file: str) -> None:
         """Busca dados e insere os dados de um arquivo no grafo."""
@@ -17,14 +16,16 @@ class Graph:
             lines = data.readlines()
 
             for line in lines:
+                if line.replace("edges", "") != line:
+                    self.__directed = False
+                if line.replace("arcs", "") != line:
+                    self.__directed = True 
+                
                 sp_line = line.split()
                 sp_types = [self.__input_type(a) for a in sp_line]
                     
                 if sp_line[0][0] == "#" or sp_line[0][0] == "*":
-                    if sp_line[0] == "*edges":
-                        self.__directed = False
-                    if sp_line[0] == "*arcs":
-                        self.__directed = True                 
+                    pass                
                 else:
                     if sp_types[0] != sp_types[1]:
                         self.__vertices.append(Vertex(int(sp_line[0]), sp_line[1]))
@@ -33,11 +34,11 @@ class Graph:
                         if len(sp_types) > 2:
                             w = float(sp_line[2])
                         if sp_types[0] == "int":
-                            self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), float(sp_line[2])))
+                            self.__edges.append(Edge(int(sp_line[0]), int(sp_line[1]), w))
                         else:
                             vertex1 = self.vertex_index(sp_line[0])
                             vertex2 = self.vertex_index(sp_line[1])
-                            self.__edges.append(Edge(vertex1, vertex2, float(sp_line[2])))
+                            self.__edges.append(Edge(vertex1, vertex2, w))
         except Exception as err:
             print(f"{err}\nSomething went wrong while loading the requested file.\nPlease, check the README file for more information about the input files")
             exit()
@@ -102,6 +103,14 @@ class Graph:
         ngbrs = self.vertex_ngbrs(arg)
         ngbrs = [self.__vertex_by_idx(ele).get_label() for ele in ngbrs]
 
+    def vertex_destinies(self, arg: Union[str, int]) -> "list[int]":
+        """Retorna uma lista dos indices de vertices vizinhos ao vertice especificado."""
+        if isinstance(arg, str):
+            arg = self.vertex_index(arg)
+        ngbrs = [ele.get_destiny() for ele in self.__edges if ele.get_origin() == arg] # arestas arg -> ngbr
+        ngbrs = list(dict.fromkeys(ngbrs)) # Remoção de duplicatas
+        return ngbrs
+
     def vertex_degree(self, arg: Union[str, int]) -> int:
         """Retorna o grau do vertice especificado por rotulo ou indice."""
         return len(self.vertex_ngbrs(arg)) if isinstance(arg, int) else len(self.vertex_ngbrs(self.vertex_index(arg)))
@@ -117,7 +126,12 @@ class Graph:
         if isinstance(vertex_b, str):
             vertex_b = self.vertex_index(vertex_b)
 
-        return self.vertex_ngbrs(vertex_a).count(vertex_b) > 0
+        if self.__directed:
+            ngbrs = self.vertex_destinies(vertex_a)
+        else:
+            ngbrs = self.vertex_ngbrs(vertex_a)
+
+        return ngbrs.count(vertex_b) > 0
 
     def edge_weight(self, vertex_a: Union[str, int], vertex_b: Union[str, int]) -> Union[int, float]:
         """Retorna o peso de uma aresta entre a e b, preferencialmente de a -> b. Em caso de não existencia retorna uma representação de float('int')"""
@@ -130,10 +144,12 @@ class Graph:
             for element in self.__edges: 
                 if element.get_origin() == vertex_a and element.get_destiny() == vertex_b:
                     return element.get_weight()
-                elif element.get_origin() == vertex_b and element.get_destiny() == vertex_a:
+                elif element.get_origin() == vertex_b and element.get_destiny() == vertex_a and (not self.__directed):
                     return element.get_weight()
 
         return float('inf')
+
+# Atividade 1
 
     def breadth_first_search(self, s: Union[str, int]) -> None:
         """Realiza uma busca em largura no grafo a partir do vertice s e imprime os resultados"""
@@ -155,7 +171,10 @@ class Graph:
 
             next_ngbrs = []
             for ele in ngbrs:
-                temp = self.vertex_ngbrs(ele)
+                if self.__directed:
+                    temp = self.vertex_destinies(ele)
+                else:
+                    temp = self.vertex_ngbrs(ele)
                 for val in temp:
                     if all_until_now.count(val) == 0:
                         all_until_now.append(val)
@@ -332,9 +351,7 @@ class Graph:
 
         print(representation)
 
-
-
-    def adjacency_matrix(self) -> "list[int][int]":
+    def __distance_matrix(self) -> "list[int][int]":
         matrix = [None]*self.n_vertices()
 
         for i in range (len(matrix)):
@@ -346,17 +363,17 @@ class Graph:
                     matrix[indexA][indexB] = 0
                 else:
                     matrix[indexA][indexB] = self.edge_weight(indexA + 1, indexB + 1)
-                
+        
+        for k in range(self.n_vertices()):
+            for i in range(self.n_vertices()):
+                for j in range(self.n_vertices()):
+                    matrix[i][j] = min(matrix[i][j], matrix[i][k] + matrix[k][j])
+
         return matrix
 
     def floyd_warshall(self) -> None:
         
-        graph = self.adjacency_matrix()
-
-        for k in range(self.n_vertices()):
-            for i in range(self.n_vertices()):
-                for j in range(self.n_vertices()):
-                    graph[i][j] = min(graph[i][j], graph[i][k] + graph[k][j])
+        graph = self.__distance_matrix()
 
         representation = ''
         for indexA in range(self.n_vertices()):
@@ -367,6 +384,122 @@ class Graph:
                     representation += ',' + ("%.0f" % graph[indexA][indexB])
         
         print(representation)
+
+# Atividade 2
+
+    def strongly_connected_components(self) -> None:
+        """Procura e lista todos os componentes fortemente conexos do grafo para depois imprimir os resultados"""
+        distances = self.__distance_matrix()
+        vertices_done = [False]*self.n_vertices()
+        components = []
+
+        for i in range(self.n_vertices()):
+            if not vertices_done[i]:
+                new_comp = []
+                for j in range(self.n_vertices()):
+                    if distances[i][j] != float('inf') and distances[j][i] != float('inf'):
+                        new_comp.append(j+1)
+                        vertices_done[j] = True
+                components.append(new_comp)
+
+        for comp in components:
+            line = str(comp[0])
+            first = True
+            for v in comp:
+                if first:
+                    first = False
+                else:
+                    line += ", " + str(v)
+            print(line)
+
+    def __DFS_Visit_OT(self, u: int, list_C: "list[bool]", list_T: "list[float]", list_F: "list[float]", tempo: float, list_O: "list[str]") -> Tuple["list[bool]", "list[float]", "list[float]", float, "list[str]"]:
+        list_C[u] = True
+        tempo += 1
+        list_T[u] = tempo
+
+        ngbrs = self.vertex_destinies(u+1)
+        ngbrs = [ele-1 for ele in ngbrs]
+
+        for i in ngbrs:
+            if not list_C[i]:
+                list_C, list_T, list_F, tempo, list_O = self.__DFS_Visit_OT(i, list_C, list_T, list_F, tempo, list_O)
+        
+        tempo += 1
+        list_F[u] = tempo
+        list_O.insert(0, self.vertex_label(u+1))
+
+        return list_C, list_T, list_F, tempo, list_O
+
+    def topological_ordering(self) -> None:
+        """Procura por uma ordem topológica válida para o grafo e imprime os resultados"""
+        list_C = [False]*self.n_vertices()
+        list_T = [float('inf')]*self.n_vertices()
+        list_F = [float('inf')]*self.n_vertices()
+        tempo = 0
+        list_O = []
+
+        for u in range(len(self.__vertices)):
+            if not list_C[u]:
+                list_C, list_T, list_F, tempo, list_O = self.__DFS_Visit_OT(u, list_C, list_T, list_F, tempo, list_O)
+
+        line = list_O[0]
+        for i in range(1, len(list_O)):
+            line += " -> " + list_O[i]
+
+        print(line)
+
+    def union(self, lst1, lst2):
+        final_list = list(set(lst1) | set(lst2))
+        return final_list
+
+    def kruskal(self) -> None:
+        result = []
+        trees = [None]*self.n_vertices()  # = S
+        vertex = 1
+        for index in range(len(trees)):
+            trees[index] = [vertex]
+            vertex += 1
+
+        tuples_vertex = []
+
+        for vertex_a in range(1, self.n_vertices() + 1):
+            for vertex_b in range(1, self.n_vertices() + 1):
+                if vertex_b in self.vertex_destinies(vertex_a):
+                    tuples_vertex.append({
+                        'first': vertex_a,
+                        'last': vertex_b,
+                        'weight': self.edge_weight(vertex_a, vertex_b),
+                    })
+        orderly_vertex = [] # = E'
+        tuples_vertex_len = len(tuples_vertex)
+        
+        while len(orderly_vertex) < tuples_vertex_len:
+            less = tuples_vertex[0]
+            for index in range(len(tuples_vertex)):
+                if tuples_vertex[index]['weight'] < less['weight']:
+                    less = tuples_vertex[index]
+            tuples_vertex.remove(less)
+            orderly_vertex.append(less)
+
+        for tuple_ in orderly_vertex:
+            if trees[tuple_['first'] - 1] != trees[tuple_['last'] - 1]: 
+                result.append(tuple_)
+                x = self.union(trees[tuple_['first'] - 1], trees[tuple_['last'] - 1])
+                for y in x:
+                    trees[y - 1] = x
+        sum = 0
+        edges = ''
+        for index in range(len(result)):
+            sum += result[index]['weight']
+            if len(edges) == 0:
+                edges = str(result[index]['first']) + '-' + str(result[index]['last'])
+            else:
+                edges += ', ' + str(result[index]['first']) + '-' + str(result[index]['last'])
+        print(sum)
+        print(edges)
+
+    def prim(self) -> None:
+        pass
 
 class Vertex:
     def __init__(self, idx: int, label: str) -> None:

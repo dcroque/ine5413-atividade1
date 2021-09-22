@@ -44,7 +44,27 @@ parser.add_argument('-d',
 parser.add_argument('-fw',
                     '--floyd_warshall',
                     action='store_true',
-                    help='Output the result of a Floyd-Warshall algorithm based on the label or index provided')              
+                    help='Output the result of a Floyd-Warshall algorithm based on the label or index provided')
+
+parser.add_argument('-scc',
+                    '--strongly_connected',
+                    action='store_true',
+                    help='Output all the strongly connected components of the graph')
+
+parser.add_argument('-to',
+                    '--topological_ordering',
+                    action='store_true',
+                    help='Output a valid topological ordering for the graph')
+
+parser.add_argument('-k',
+                    '--kruskal',
+                    action='store_true',
+                    help='Output the minimum spanning tree using the Kruskal algorithm')
+
+parser.add_argument('-p',
+                    '--prim',
+                    action='store_true',
+                    help='Output the minimum spanning tree using the Prim algorithm')              
 
 args = parser.parse_args()
 
