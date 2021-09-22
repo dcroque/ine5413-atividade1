@@ -55,5 +55,20 @@ if cli.args.prim:
     graph.prim()
     action_done = True
 
+if cli.args.edmonds_karp:
+    print(f"Edmonds-Karp's max flux:\n")
+    graph.edmonds_karp()
+    action_done = True
+
+if cli.args.hopcroft_karp:
+    print(f"Hopcroft-Karp's max flux:\n")
+    graph.hopcroft_karp()
+    action_done = True
+
+if cli.args.coloring:
+    print(f"Lawler's minimum coloring:\n")
+    graph.lawler()
+    action_done = True
+
 if not action_done:
     print("Welp, nothing to be done. Maybe you want to check -h and add some flags next time.")

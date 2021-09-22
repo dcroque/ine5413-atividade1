@@ -64,7 +64,22 @@ parser.add_argument('-k',
 parser.add_argument('-p',
                     '--prim',
                     action='store_true',
-                    help='Output the minimum spanning tree using the Prim algorithm')              
+                    help='Output the minimum spanning tree using the Prim algorithm')
+
+parser.add_argument('-ek',
+                    '--edmonds-karp',
+                    action='store_true',
+                    help='Output the maximum flux using the Edmonds-Karp algorithm')
+
+parser.add_argument('-hk',
+                    '--hopcroft-karp',
+                    action='store_true',
+                    help='Output the maximum flux and what edges were used using the Hopcroft-Karp algorithm')
+
+parser.add_argument('-c',
+                    '--coloring',
+                    action='store_true',
+                    help='Output the minimum coloring and the chromatic number used using the Lawler algorithm')             
 
 args = parser.parse_args()
 

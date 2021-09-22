@@ -501,6 +501,17 @@ class Graph:
     def prim(self) -> None:
         pass
 
+# Atividade 3
+
+    def edmonds_karp(self) -> None:
+        pass
+
+    def hopcroft_karp(self) -> None:
+        pass
+
+    def lawler(self) -> None:
+        pass
+
 class Vertex:
     def __init__(self, idx: int, label: str) -> None:
         self.__idx = idx
