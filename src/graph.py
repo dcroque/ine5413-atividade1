@@ -509,7 +509,7 @@ class Graph:
     def hopcroft_karp(self) -> None:
         pass
 
-    def lawler(self) -> None:
+    def coloring(self) -> None:
         pass
 
 class Vertex:

@@ -66,8 +66,8 @@ if cli.args.hopcroft_karp:
     action_done = True
 
 if cli.args.coloring:
-    print(f"Lawler's minimum coloring:\n")
-    graph.lawler()
+    print(f"Minimum coloring:\n")
+    graph.coloring()
     action_done = True
 
 if not action_done:

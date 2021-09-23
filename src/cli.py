@@ -79,7 +79,7 @@ parser.add_argument('-hk',
 parser.add_argument('-c',
                     '--coloring',
                     action='store_true',
-                    help='Output the minimum coloring and the chromatic number used using the Lawler algorithm')             
+                    help='Output the minimum coloring and the chromatic number used using a coloring algorithm')             
 
 args = parser.parse_args()
 
