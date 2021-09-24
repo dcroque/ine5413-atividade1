@@ -1,9 +1,9 @@
 # test_data
 #     
-#   .-->c   .---f<--.
-#   |   ^   |       |
-#   |   |   v       |
-#   a   b-->d<--e<--g
+#   .---c   .---f---.
+#   |   |   |       |
+#   |   |   |       |
+#   a   b---d---e---g
 #   
 #  f -> e -> c -> d -> b -> a
 *vertices 8
@@ -14,7 +14,7 @@
 5 e
 6 f
 7 g
-*arcs
+*edges
 b c 1
 a c 1
 b d 1

@@ -510,7 +510,119 @@ class Graph:
         pass
 
     def coloring(self) -> None:
-        pass
+        independent_list_with_dup = [self.__find_all_independent(i, [False]*self.n_vertices()) for i in range (1, self.n_vertices()+1)]
+        independent_list = []
+        independent_list_n = []
+        for element in independent_list_with_dup:
+            for ele in element:
+                if independent_list_n.count(self.__conj_number(ele)) == 0:
+                    independent_list_n.append(self.__conj_number(ele))
+                    independent_list.append(ele)
+
+        independent_values = [self.__conj_number(x) for x in independent_list]
+
+        sets_number = self.__subsetsum(independent_values, self.__max_number())
+        solution_bool = []
+        for ele in sets_number:
+            solution_bool.append(independent_list[independent_values.index(ele)])
+
+        solution = []
+        for ele in solution_bool:
+            new_part = []
+            for i in range(len(ele)):
+                if ele[i]:
+                    new_part.append(i+1)
+            solution.append(new_part)
+
+        print(f"Número mínimo de cores: {len(solution)}\n\nColoração por índice:\n")
+        for i in range(len(solution)):
+            print(f"Cor {i+1}: {solution[i]}")
+        
+        print()
+
+
+    def __conj_number(self, values: "list[bool]") -> int:
+        result = 0
+        for i in range(len(values)):
+            if values[i]:
+                result += 2**i
+        return result
+
+    def __subsetsum(self, array, num):
+        result = []
+        def find_arr(arr, num, path=()):
+            if not arr:
+                return
+            if arr[0] == num:
+                result.append(path + (arr[0],))
+            else:
+                find_arr(arr[1:], num - arr[0], path + (arr[0],))
+                find_arr(arr[1:], num, path)
+        find_arr(array, num)
+
+        size_list = [len(x) for x in result]
+        min = size_list[0]
+        min_idx = 0
+        for i in range(1, len(size_list)):
+            if size_list[i] < min:
+                min = size_list[i]
+                min_idx = i
+
+        return result[min_idx]
+
+    def __max_number(self) -> int:
+        return 2**self.n_vertices()-1
+
+    def __print_color(self, result):
+        for ele in result:
+            new_ele = ele
+            for i in range(len(new_ele)):
+                if new_ele[i]:
+                    new_ele[i] = self.__map(i)
+                else:
+                    new_ele[i] = "_"
+            print(f"{new_ele}")
+
+    def __new_independent(self, root: int) -> "list[bool]":
+        result = [False]*self.n_vertices()
+        result[root] = True
+
+        return result
+
+    def __find_all_independent(self, root: int, already_used: "list[bool]") -> "list[list[bool]]":
+        result = []
+
+        for i in range(len(already_used)):
+            if i == root-1:
+                pass
+            elif not already_used[i] and not self.has_edge(root, i+1):
+                new_ele = self.__new_independent(root-1)
+                new_ele[i] = True
+                result.append(new_ele)
+
+        for res_idx in range(len(result)):
+            for idx in range(len(already_used)):
+                ngbr = False
+                for ele_res_idx in range(len(result[res_idx])):
+                    if result[res_idx][ele_res_idx] and self.has_edge(idx+1, ele_res_idx+1):
+                        ngbr = True
+                        break
+                if not ngbr:
+                    result[res_idx][idx] = True
+
+        # new_ele = self.__new_independent(root-1)
+        # result.append(new_ele)
+
+        numb_list = [self.__conj_number(x) for x in result]
+        i = 0
+        while i < len(numb_list):
+            if numb_list.count(numb_list[i]) > 1:
+                numb_list.pop(i)
+                result.pop(i)
+            else:
+                i+=1
+
+        return result
 
 class Vertex:
     def __init__(self, idx: int, label: str) -> None:
